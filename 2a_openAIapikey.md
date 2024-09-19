@@ -16,13 +16,14 @@ Ingresar a ``View API keys``
   </a>
   </div>
 
-  En esta nueva pantalla debe hacer clic en ``Create new secret key`` 
+  En esta nueva pantalla, deben ingresar a su perfil debe hacer clic en ``Create new secret key`` 
 
-   <div align="center">
-  <a>
-    <img src="imgs/key3.png">
-  </a>
-  </div>
+![Apikey1](https://github.com/user-attachments/assets/14db0431-3239-432b-bd55-615a7e5bfebe)
+
+  Luego deben verificar su cuenta y crean su propia llave asociada a su cuenta de OpenAI
+
+  ![image](https://github.com/user-attachments/assets/1cc40150-fa69-470c-b41d-308d5d9bb3a9)
+
 
   Allí debe ingresar un nombre para su API key, por ejemplo ``workshop3``
   
@@ -34,11 +35,7 @@ Ingresar a ``View API keys``
 
 Copie la API key y haga clic en ``Done``. Tenga en cuenta que después de cerrar esta ventana no tendrá de nuevo acceso a esta llave, por lo que debe almacenarla en algún documento.
 
-   <div align="center">
-  <a>
-    <img src="imgs/key5.png">
-  </a>
-  </div>
+![image](https://github.com/user-attachments/assets/2696550b-b0aa-4421-80de-123b17b3fb1e)
 
 Almacene su API key en un documento ``.env``, por ejemplo ``api_keys.env``. Esto lo puede hacer en un editor de texto como Sublime o VScode 
 
