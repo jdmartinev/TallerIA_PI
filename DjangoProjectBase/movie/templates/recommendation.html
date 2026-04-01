@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">Recomendación de películas</h1>
+
+  <form method="get" class="mb-4">
+    <div class="mb-3">
+      <label for="prompt" class="form-label">Describe lo que quieres ver</label>
+      <input type="text" class="form-control" id="prompt" name="prompt" value="{{ prompt }}" placeholder="película de la Segunda Guerra Mundial" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Buscar recomendación</button>
+  </form>
+
+  {% if message %}
+    <div class="alert alert-info">{{ message }}</div>
+  {% endif %}
+
+  {% if recommended %}
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+      <div class="col">
+        <div class="card h-100">
+          <img src="{{ recommended.image.url }}" class="card-img-top" alt="{{ recommended.title }}">
+          <div class="card-body">
+            <h5 class="card-title fw-bold">{{ recommended.title }}</h5>
+            <p class="card-text">{{ recommended.description }}</p>
+            <p class="card-text"><small class="text-muted">{{ recommended.genre }} | {{ recommended.year }}</small></p>
+            {% if recommended.url %}
+              <a href="{{ recommended.url }}" class="btn btn-primary" target="_blank">Ver más</a>
+            {% endif %}
+          </div>
+          <div class="card-footer bg-white border-top-0">
+            <p class="mb-0"><strong>Similitud:</strong> {{ similarity|floatformat:4 }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% elif prompt and not message %}
+    <div class="alert alert-warning">No se encontró ninguna película con embeddings disponibles. Ejecuta <code>python manage.py movie_embeddings</code> para cargar los vectores.</div>
+  {% endif %}
+</div>
+{% endblock %}

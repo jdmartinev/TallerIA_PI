@@ -1,17 +1,34 @@
 import os
+from pathlib import Path
+
 import numpy as np
 from django.core.management.base import BaseCommand
 from movie.models import Movie
 from openai import OpenAI
 from dotenv import load_dotenv
 
+
+def safe_load_dotenv():
+    candidates = [
+        '../openAI.env',
+        str(Path(__file__).resolve().parents[3] / 'openAI.env'),
+        'openAI.env',
+    ]
+    for candidate in candidates:
+        if Path(candidate).exists():
+            load_dotenv(candidate)
+            return candidate
+    load_dotenv()
+    return None
+
 class Command(BaseCommand):
     help = "Generate and store embeddings for all movies in the database"
 
     def handle(self, *args, **kwargs):
         # ✅ Load OpenAI API key
-        load_dotenv('../openAI.env')
-        client = OpenAI(api_key=os.environ.get('openai_apikey'))
+        safe_load_dotenv()
+        api_key = os.environ.get('openai_apikey')
+        client = OpenAI(api_key=api_key)
 
         # ✅ Fetch all movies from the database
         movies = Movie.objects.all()

@@ -1,12 +1,53 @@
-from django.shortcuts import render
-from django.http import HttpResponse
+import os
+from pathlib import Path
 
-from .models import Movie
-
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 import io
 import urllib, base64
+
+from django.shortcuts import render
+from django.http import HttpResponse
+from dotenv import load_dotenv
+from openai import OpenAI
+
+from .models import Movie
+
+
+def safe_load_dotenv():
+    candidates = [
+        str(Path(__file__).resolve().parents[2] / 'openAI.env'),
+        str(Path(__file__).resolve().parents[1] / 'openAI.env'),
+        'openAI.env',
+    ]
+    for candidate in candidates:
+        if Path(candidate).exists():
+            load_dotenv(candidate)
+            return candidate
+    load_dotenv()
+    return None
+
+
+def get_embedding(client, text):
+    response = client.embeddings.create(
+        input=[text],
+        model='text-embedding-3-small'
+    )
+    return np.array(response.data[0].embedding, dtype=np.float32)
+
+
+def cosine_similarity(a, b):
+    if a.size == 0 or b.size == 0:
+        return 0.0
+
+    norm_a = np.linalg.norm(a)
+    norm_b = np.linalg.norm(b)
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+
+    return float(np.dot(a, b) / (norm_a * norm_b))
+
 
 def home(request):
     #return HttpResponse('<h1>Welcome to Home Page</h1>')
@@ -27,6 +68,50 @@ def about(request):
 def signup(request):
     email = request.GET.get('email') 
     return render(request, 'signup.html', {'email':email})
+
+
+def recommendation(request):
+    prompt = request.GET.get('prompt', '').strip()
+    recommended = None
+    similarity = None
+    message = None
+
+    if prompt:
+        dotenv_path = safe_load_dotenv()
+        api_key = os.environ.get('openai_apikey')
+        if not api_key:
+            message = 'openai_apikey no encontrada. Revisa openAI.env'
+        else:
+            client = OpenAI(api_key=api_key)
+            try:
+                prompt_emb = get_embedding(client, prompt)
+            except Exception as exc:
+                message = f'No se pudo generar el embedding del prompt: {exc}'
+            else:
+                best_movie = None
+                max_similarity = -1.0
+                movies_with_emb = Movie.objects.exclude(emb__isnull=True)
+                for movie in movies_with_emb:
+                    if not movie.emb:
+                        continue
+                    movie_emb = np.frombuffer(movie.emb, dtype=np.float32)
+                    sim = cosine_similarity(prompt_emb, movie_emb)
+                    if sim > max_similarity:
+                        max_similarity = sim
+                        best_movie = movie
+
+                if best_movie is not None:
+                    recommended = best_movie
+                    similarity = max_similarity
+                else:
+                    message = 'No hay películas con embeddings almacenados. Ejecuta python manage.py movie_embeddings.'
+
+    return render(request, 'recommendation.html', {
+        'prompt': prompt,
+        'recommended': recommended,
+        'similarity': similarity,
+        'message': message,
+    })
 
 
 def statistics_view0(request):
